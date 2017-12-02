@@ -33,6 +33,7 @@ class SingleTable {
 
  public:
   explicit SingleTable(const size_t num) : num_buckets_(num) {
+    // std::cout << "Num of buckets: " << num_buckets_ << std::endl;
     buckets_ = new Bucket[num_buckets_ + kPaddingBuckets];
     memset(buckets_, 0, kBytesPerBucket * (num_buckets_ + kPaddingBuckets));
   }
@@ -89,6 +90,7 @@ class SingleTable {
 
   // write tag to pos(i,j)
   inline void WriteTag(const size_t i, const size_t j, const uint32_t t) {
+    // std::cout << "WriteTag " << i << " " << j << " " << t << std::endl;
     char *p = buckets_[i].bits_;
     uint32_t tag = t & kTagMask;
     /* following code only works for little-endian */
@@ -187,18 +189,24 @@ class SingleTable {
     return false;
   }
 
-  inline bool InsertTagToBucket(const size_t i, const uint32_t tag,
-                                const bool kickout, uint32_t &oldtag) {
+  inline bool InsertTagToBucket(const size_t i, const uint32_t tag[4],
+                                const bool kickout, size_t &slot) {
+  // std::cout << "Here2.1" << std::endl;
+    // uint32_t oldtag;
     for (size_t j = 0; j < kTagsPerBucket; j++) {
+  // std::cout << "Here2.2 " << i <<" " << j << std::endl;
       if (ReadTag(i, j) == 0) {
-        WriteTag(i, j, tag);
+  // std::cout << "Here2.3 " << j << std::endl;
+        WriteTag(i, j, tag[j]);
+        slot = j;
+  // std::cout << "Here2.4 " << j << std::endl;
         return true;
       }
     }
     if (kickout) {
-      size_t r = rand() % kTagsPerBucket;
-      oldtag = ReadTag(i, r);
-      WriteTag(i, r, tag);
+      slot = rand() % kTagsPerBucket;
+      // oldtag = ReadTag(i, slot);
+      WriteTag(i, slot, tag[slot]);
     }
     return false;
   }

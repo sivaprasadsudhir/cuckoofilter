@@ -6,9 +6,11 @@ PREFIX=/usr/local
 #OPT = -O3 -DNDEBUG
 OPT = -g -ggdb
 
-CFLAGS += --std=c++11 -fno-strict-aliasing -Wall -c -I. -I./include -I/usr/include/ -I./src/ $(OPT)
+CFLAGS += --std=c++11 -fno-strict-aliasing -Wall -c -I. -I./include -I/usr/include/ -I./src/ $(OPT) 
+CFLAGS += -I/usr/local/opt/openssl/include -I ../libcuckoo/install/include
+CFLAGS += -I./benchmarks
 
-LDFLAGS+= -Wall -lpthread -lssl -lcrypto
+LDFLAGS+= -Wall -lpthread -lssl -lcrypto -L/usr/local/opt/openssl/lib
 
 LIBOBJECTS = \
 	./src/hashutil.o \
@@ -25,6 +27,9 @@ clean:
 
 test: example/test.o $(LIBOBJECTS) 
 	$(CC) example/test.o $(LIBOBJECTS) $(LDFLAGS) -o $@
+
+benchmark: example/benchmark.o $(LIBOBJECTS) 
+	$(CC) example/benchmark.o $(LIBOBJECTS) $(LDFLAGS) -o $@
 
 %.o: %.cc ${HEADERS} Makefile
 	$(CC) $(CFLAGS) $< -o $@

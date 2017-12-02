@@ -9,44 +9,58 @@
 using cuckoofilter::CuckooFilter;
 
 int main(int argc, char **argv) {
-  size_t total_items = 1000000;
+  int total_items = 10000;
 
-  // Create a cuckoo filter where each item is of type size_t and
-  // use 12 bits for each item:
-  //    CuckooFilter<size_t, 12> filter(total_items);
-  // To enable semi-sorting, define the storage of cuckoo filter to be
-  // PackedTable, accepting keys of size_t type and making 13 bits
-  // for each key:
-  //   CuckooFilter<size_t, 13, cuckoofilter::PackedTable> filter(total_items);
-  CuckooFilter<size_t, 12> filter(total_items);
+  CuckooFilter<int, 12> filteredhash(total_items);
 
-  // Insert items to this cuckoo filter
-  size_t num_inserted = 0;
-  for (size_t i = 0; i < total_items; i++, num_inserted++) {
-    if (filter.Add(i) != cuckoofilter::Ok) {
+  // Insert items to this filtered hash table
+  int num_inserted = 0;
+  for (int i = 0; i < total_items; i++, num_inserted++) {
+    uint64_t val = 2 * i;
+    if (!filteredhash.insert(i, val)) {
       break;
     }
   }
 
+  std::cout << "Successfully inserted: " << num_inserted << std::endl;
+
   // Check if previously inserted items are in the filter, expected
   // true for all items
-  for (size_t i = 0; i < num_inserted; i++) {
-    assert(filter.Contain(i) == cuckoofilter::Ok);
+  // for (int i = 0; i < num_inserted; i++) {
+  //   assert(filteredhash.contains(i));
+  // }
+  // std::cout << "Contains done: " << std::endl;
+
+  // // Check if previously inserted items are in the table, expected
+  // // true for all items and val == -i
+  // for (int i = 0; i < num_inserted; i++) {
+  //   uint64_t val;
+  //   assert(filteredhash.find(i, val));
+  //   assert(val == 2 * i);
+  // }
+  // std::cout << "Find done: " << std::endl;
+
+  // Check non-existing items, no false positives expected
+    // std::cout << "Bla: " << std::endl;
+  for (int i = total_items; i < 10 * total_items; i++) {
+    uint64_t val;
+    assert(!filteredhash.find(i, val));
+  }
+    // std::cout << "Blu: " << std::endl;
+  std::cout << "Contains of non existent things done: " << std::endl;
+
+
+  // Delete all the values, true expected
+  // find should return false
+  // contains should return false
+  for (int i = 0; i < num_inserted; i++) {
+    assert(filteredhash.erase(i));
+    uint64_t val;
+    assert(!filteredhash.find(i, val));
+    assert(!filteredhash.contains(i));
   }
 
-  // Check non-existing items, a few false positives expected
-  size_t total_queries = 0;
-  size_t false_queries = 0;
-  for (size_t i = total_items; i < 2 * total_items; i++) {
-    if (filter.Contain(i) == cuckoofilter::Ok) {
-      false_queries++;
-    }
-    total_queries++;
-  }
-
-  // Output the measured false positive rate
-  std::cout << "false positive rate is "
-            << 100.0 * false_queries / total_queries << "%\n";
+  std::cout << "Test Successful" << std::endl;
 
   return 0;
 }
