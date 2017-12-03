@@ -186,9 +186,11 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::find(
       // std::cout << "Finger print matched and hashmap gave " << key_value.first << " " << key_value.second << std::endl;
       if(key == key_value.first) {
         val = key_value.second;
-        goto find_false_positive_removal;
+        found = true;
+        // goto find_false_positive_removal;
       }
       else {
+        // std::cout << "But keys didn't match " << key_value.first << " " << key << std::endl;
         false_positives.push_back(std::make_pair(i1, slot));
       }
     }
@@ -205,22 +207,30 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::find(
       // std::cout << "Finger print matched and hashmap gave " << key_value.first << " " << key_value.second << std::endl;
       if(key == key_value.first) {
         val = key_value.second;
-        goto find_false_positive_removal;
+        found = true;
+        // goto find_false_positive_removal;
       }
       else {
+        // std::cout << "But keys didn't match " << key_value.first << " " << key << std::endl;
         false_positives.push_back(std::make_pair(i2, slot));
       }
     }
   }
 
-  return false;
-
-  find_false_positive_removal:
-  // call false positive removal for each pair in false_positives
   for(unsigned int i = 0; i < false_positives.size(); i++) {
+    // std::cout << "Called remove_false_positives " << std::endl;
     remove_false_positives(false_positives[i].first, false_positives[i].second);
   }
-  return true;
+
+  return found;
+
+  // find_false_positive_removal:
+  // // call false positive removal for each pair in false_positives
+  // for(unsigned int i = 0; i < false_positives.size(); i++) {
+  //   std::cout << "Called remove_false_positives " << std::endl;
+  //   remove_false_positives(false_positives[i].first, false_positives[i].second);
+  // }
+  // return true;
 
 }
 
@@ -291,10 +301,11 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::contains(
     if(tag[slot] == table_->ReadTag(i1, slot)) {
       std::pair<ItemType, uint64_t> key_value;
       hashmap.read_from_bucket_at_slot(i1, slot, key_value);
-      std::cout << "Finger print matched and hashmap gave " << key_value.first << " " << key_value.second << std::endl;
+      // std::cout << "Finger print matched and hashmap gave " << key_value.first << " " << key_value.second << std::endl;
       // std::cout << "Key from hashmap: " << key_value.first << " " << key_value.second << std::endl;
       if(key == key_value.first) {
-        goto contains_false_positive_removal;
+        found = true;
+        // goto contains_false_positive_removal;
       }
       else {
         false_positives.push_back(std::make_pair(i1, slot));
@@ -310,9 +321,10 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::contains(
       // std::cout << "Finger print matched: " << i2 << " " << slot << std::endl;
       std::pair<ItemType, uint64_t> key_value;
       hashmap.read_from_bucket_at_slot(i2, slot, key_value);
-      std::cout << "Finger print matched and hashmap gave " << key_value.first << " " << key_value.second << std::endl;
+      // std::cout << "Finger print matched and hashmap gave " << key_value.first << " " << key_value.second << std::endl;
       if(key == key_value.first) {
-        goto contains_false_positive_removal;
+        found = true;
+        // goto contains_false_positive_removal;
       }
       else {
         false_positives.push_back(std::make_pair(i2, slot));
@@ -320,15 +332,14 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::contains(
     }
   }
 
-  return false;
+  // return false;
 
-  contains_false_positive_removal:
-  std::cout << "Calling rem_false_pos" << std::endl;
   // call false positive removal for each pair in false_positives
   for(unsigned int i = 0; i < false_positives.size(); i++) {
+    // std::cout << "Calling rem_false_pos" << std::endl;
     remove_false_positives(false_positives[i].first, false_positives[i].second);
   }
-  return true;
+  return found;
 
 }
 
@@ -438,7 +449,8 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::erase(
       if(key == key_value.first) {
         table_->WriteTag(i1, slot, 0);
         hashmap.del_from_bucket_at_slot(i1, slot);
-        goto delete_false_positive_removal;
+        found = true;
+        // goto delete_false_positive_removal;
       }
       else {
         false_positives.push_back(std::make_pair(i1, slot));
@@ -455,7 +467,8 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::erase(
       if(key == key_value.first) {
         table_->WriteTag(i2, slot, 0);
         hashmap.del_from_bucket_at_slot(i2, slot);
-        goto delete_false_positive_removal;
+        found = true;
+        // goto delete_false_positive_removal;
       }
       else {
         false_positives.push_back(std::make_pair(i2, slot));
@@ -463,13 +476,16 @@ bool CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::erase(
     }
   }
 
-  return false;
+  // return false;
 
-  delete_false_positive_removal:
+  // delete_false_positive_removal:
   // call false positive removal for each pair in false_positives
   for(unsigned int i = 0; i < false_positives.size(); i++) {
     remove_false_positives(false_positives[i].first, false_positives[i].second);
   }
+
+  if(!found)
+    return false;
 
   // Try removing victim
 
@@ -489,7 +505,7 @@ void CuckooFilter<ItemType, bits_per_item, TableType, HashFamily>::remove_false_
                                                                 size_t index, size_t slot)
 {
   
-  std::cout << "Remove False Positives" << std::endl;
+  // std::cout << "Remove False Positives" << std::endl;
 
   int new_slot = rand() % 3;
   if(new_slot == slot)

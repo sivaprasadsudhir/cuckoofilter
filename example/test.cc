@@ -9,7 +9,7 @@
 using cuckoofilter::CuckooFilter;
 
 int main(int argc, char **argv) {
-  int total_items = 10000;
+  int total_items = 1000000;
 
   CuckooFilter<int, 12> filteredhash(total_items);
 
@@ -26,19 +26,19 @@ int main(int argc, char **argv) {
 
   // Check if previously inserted items are in the filter, expected
   // true for all items
-  // for (int i = 0; i < num_inserted; i++) {
-  //   assert(filteredhash.contains(i));
-  // }
-  // std::cout << "Contains done: " << std::endl;
+  for (int i = 0; i < num_inserted; i++) {
+    assert(filteredhash.contains(i));
+  }
+  std::cout << "Contains done: " << std::endl;
 
   // // Check if previously inserted items are in the table, expected
   // // true for all items and val == -i
-  // for (int i = 0; i < num_inserted; i++) {
-  //   uint64_t val;
-  //   assert(filteredhash.find(i, val));
-  //   assert(val == 2 * i);
-  // }
-  // std::cout << "Find done: " << std::endl;
+  for (int i = 0; i < num_inserted; i++) {
+    uint64_t val;
+    assert(filteredhash.find(i, val));
+    assert(val == 2 * i);
+  }
+  std::cout << "Find done: " << std::endl;
 
   // Check non-existing items, no false positives expected
     // std::cout << "Bla: " << std::endl;

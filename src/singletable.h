@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include <sstream>
+#include <atomic>
 
 #include "bitsutil.h"
 #include "debug.h"
@@ -25,6 +26,7 @@ class SingleTable {
 
   struct Bucket {
     char bits_[kBytesPerBucket];
+    std::atomic_uint16_t counter;
   } __attribute__((__packed__));
 
   // using a pointer adds one more indirection
@@ -34,8 +36,10 @@ class SingleTable {
  public:
   explicit SingleTable(const size_t num) : num_buckets_(num) {
     // std::cout << "Num of buckets: " << num_buckets_ << std::endl;
-    buckets_ = new Bucket[num_buckets_ + kPaddingBuckets];
-    memset(buckets_, 0, kBytesPerBucket * (num_buckets_ + kPaddingBuckets));
+    buckets_ = new Bucket[num_buckets_];
+    // buckets_ = new Bucket[num_buckets_ + kPaddingBuckets];
+    memset(buckets_, 0, (kBytesPerBucket + 2) * (num_buckets_));
+    // memset(buckets_, 0, kBytesPerBucket * (num_buckets_ + kPaddingBuckets));
   }
 
   ~SingleTable() { 

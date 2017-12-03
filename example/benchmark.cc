@@ -222,43 +222,43 @@ Statistics FilterBenchmark(
       temp1 = filter.findinfilter(v);
       found_count += temp1;
       temp2 = filter.find(v, val);
-      //found_count += filter.find(v, val);
-      temp3 = filter.findinfilter(v);
-      found_count_filter += temp3;
-      if(temp1 == 1 && temp2 == 0 && temp3==1) {
-        // std::cout << "ALERT" << std::endl;
-      }
+      // found_count += filter.find(v, val);
+      // temp3 = filter.findinfilter(v);
+      // found_count_filter += temp3;
+      // if(temp1 == 1 && temp2 == 0 && temp3==1) {
+      //   std::cout << "ALERT" << std::endl;
+      // }
     }
-    if (0.0 == found_probability) {
-      result.false_positive_rate =
-          found_count_filter / static_cast<double>(to_lookup_mixed.size());
-    }
+    // if (0.0 == found_probability) {
+    //   result.false_positive_rate =
+    //       found_count_filter / static_cast<double>(to_lookup_mixed.size());
+    // }
     if (0.0 == found_probability) {
       result.false_positive_probabilty =
           found_count / static_cast<double>(to_lookup_mixed.size());
     }
   }
 
-  std::cout << "false_positive_rate = " << result.false_positive_rate << "\n";
+  // std::cout << "false_positive_rate = " << result.false_positive_rate << "\n";
   std::cout << "false_positive_probabilty = " << result.false_positive_probabilty << "\n";
   // found_count = 0;
-  // for (const double found_probability : {0.0, 0.25, 0.50, 0.75, 1.00}) {
-  //   const auto to_lookup_mixed = MixIn(&to_lookup[0], &to_lookup[SAMPLE_SIZE], &to_add[0],
-  //       &to_add[add_count], found_probability);
-  //   const auto start_time = NowNanos();
-  //   for (const auto v : to_lookup_mixed) {
-  //     //found_count += FilterAPI<Table>::Contain(v, &filter);
-  //     found_count += filter.contains(v);
-  //   }
-  //   const auto lookup_time = NowNanos() - start_time;
-  //   result.finds_per_nano[100 * found_probability] =
-  //       SAMPLE_SIZE / static_cast<double>(lookup_time);
-  //   if (0.0 == found_probability) {
-  //     result.false_positive_probabilty =
-  //         found_count / static_cast<double>(to_lookup_mixed.size());
-  //   }
-  // }
-
+  for (const double found_probability : {0.0, 0.25, 0.50, 0.75, 1.00}) {
+    const auto to_lookup_mixed = MixIn(&to_lookup[0], &to_lookup[SAMPLE_SIZE], &to_add[0],
+        &to_add[add_count], found_probability);
+    const auto start_time = NowNanos();
+    for (const auto v : to_lookup_mixed) {
+      //found_count += FilterAPI<Table>::Contain(v, &filter);
+      found_count_filter += filter.contains(v);
+    }
+    const auto lookup_time = NowNanos() - start_time;
+    result.finds_per_nano[100 * found_probability] =
+        SAMPLE_SIZE / static_cast<double>(lookup_time);
+    if (0.0 == found_probability) {
+      result.false_positive_rate =
+          found_count_filter / static_cast<double>(to_lookup_mixed.size());
+    }
+  }
+  std::cout << "false_positive_rate = " << result.false_positive_rate << "\n";
   found_count = 0;
 
 
